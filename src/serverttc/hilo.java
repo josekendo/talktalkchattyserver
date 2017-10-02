@@ -39,16 +39,22 @@ public class hilo extends Thread {
     }
     @Override
     public void run() {
-        String accion = "";
+        String accion;
         try {
+            dos.writeUTF("Hola soy el servidor\n");
             accion = dis.readUTF();
             if(accion.equals("hola")){
                 System.out.println("El cliente con idSesion "+this.idSessio+" saluda");
                 padre.addMensaje("El cliente con idSesion "+this.idSessio+" saluda",'k');
                 dos.writeUTF("adios");
             }
+            else
+            {
+               System.out.println("mensaje no reconocido");
+            }
         } catch (IOException ex) {
-            Logger.getLogger(hilo.class.getName()).log(Level.SEVERE, null, ex);
+            /*Logger.getLogger(hilo.class.getName()).log(Level.SEVERE, null, ex);*/
+           /*detectar cierre de sesion*/
         }
         desconnectar();
     }

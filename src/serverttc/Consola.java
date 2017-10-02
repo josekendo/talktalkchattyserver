@@ -6,8 +6,6 @@
 package serverttc;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +23,9 @@ public class Consola extends javax.swing.JFrame {
      * Creates new form Consola
      */
     private Tarea servi;
+    private boolean startenabled = true;
+    private server ser;
+    
     public Consola(){
         initComponents();
         
@@ -40,9 +41,12 @@ public class Consola extends javax.swing.JFrame {
 
     public void startM()
     {
-        System.out.println("arrancando servidor");
-        servi = new Tarea(this);
-        servi.start();
+        if(this.startenabled)
+        {
+            System.out.println("arrancando servidor");
+            servi = new Tarea(this);
+            servi.start();
+        }
     }
     
     public void stopM()
@@ -54,7 +58,7 @@ public class Consola extends javax.swing.JFrame {
         } catch (BadLocationException ex) {
             Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
         }
-  
+        ser.parar(this);
     }
     
     /**
@@ -177,10 +181,8 @@ public class Consola extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Consola().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new Consola().setVisible(true);
         });
     }
     
@@ -218,24 +220,35 @@ public class Consola extends javax.swing.JFrame {
             Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void inhabilitarInicio()
+    {
+        this.start.setEnabled(false);
+        this.startenabled = false;
+    }
 
+    public void habilitarInicio()
+    {
+        this.start.setEnabled(true);
+        this.startenabled = true;
+    }
     
     class Tarea extends Thread {
-       private Consola padre;
-        
+       private Consola padre; 
+       
        public Tarea(Consola p)
        {
            padre = p;
        }
-               
+             
        @Override
        public void run()
        {
             String puertos[] = new String[1];
             puertos[0]=jTextField1.getText();
-            server servidor = new server();
+            ser = new server();
            try {
-               servidor.inicio(puertos,padre);
+                ser.inicio(puertos,padre);
            } catch (IOException ex) {
                Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
            }

@@ -8,11 +8,11 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="ServerTTC.jar" size="7643" download="eager" />
+    <jar href="ServerTTC.jar" size="11013" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="ServerTTC" >
     <param name="requiredFXVersion" value="8.0+"/>
   </applet-desc>
-  <jfx:javafx-desc  width="800" height="600" main-class="serverttc.ServerTTC"  name="ServerTTC" />
+  <jfx:javafx-desc  width="800" height="600" main-class="serverttc.serverttc"  name="ServerTTC" />
   <update check="always"/>
 </jnlp>

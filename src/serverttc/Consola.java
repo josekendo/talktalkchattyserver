@@ -8,6 +8,7 @@ package serverttc;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.text.BadLocationException;
@@ -23,6 +24,7 @@ public class Consola extends javax.swing.JFrame {
     /**
      * Creates new form Consola
      */
+    private Tarea servi;
     public Consola(){
         initComponents();
         
@@ -38,14 +40,9 @@ public class Consola extends javax.swing.JFrame {
 
     public void startM()
     {
-       SimpleAttributeSet attrs = new SimpleAttributeSet();
-       StyleConstants.setForeground(attrs, Color.GREEN);
-        try {
-            jTextPane1.getStyledDocument().insertString(jTextPane1.getStyledDocument().getLength(), "\n"+"Iniciando servicio por el puerto "+jTextField1.getText() ,attrs);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
-        }
-  
+        System.out.println("arrancando servidor");
+        servi = new Tarea(this);
+        servi.start();
     }
     
     public void stopM()
@@ -201,5 +198,48 @@ public class Consola extends javax.swing.JFrame {
         StyleConstants.setBold(attrs, true);
         jTextPane1.getStyledDocument().insertString(jTextPane1.getStyledDocument().getLength(), "Preparado para iniciar servicio TTC" ,attrs);
     }
+    
+    public void addMensaje(String a, char color)
+    {
+       SimpleAttributeSet attrs = new SimpleAttributeSet();
+       switch(color)
+       {
+           case 'r': StyleConstants.setForeground(attrs, Color.RED);
+           break;
+           case 'g': StyleConstants.setForeground(attrs, Color.GREEN);
+           break;
+           case 'b': StyleConstants.setForeground(attrs, Color.BLUE);
+           break;
+           case 'k': StyleConstants.setForeground(attrs, Color.BLACK);
+       }
+        try {
+            jTextPane1.getStyledDocument().insertString(jTextPane1.getStyledDocument().getLength(),a,attrs);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    
+    class Tarea extends Thread {
+       private Consola padre;
+        
+       public Tarea(Consola p)
+       {
+           padre = p;
+       }
+               
+       @Override
+       public void run()
+       {
+            String puertos[] = new String[1];
+            puertos[0]=jTextField1.getText();
+            server servidor = new server();
+           try {
+               servidor.inicio(puertos,padre);
+           } catch (IOException ex) {
+               Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       }
+    }  
     
 }

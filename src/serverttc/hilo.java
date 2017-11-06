@@ -42,15 +42,23 @@ public class hilo extends Thread {
         String accion;
         try {
             dos.writeUTF("Hola soy el servidor\n");
-            accion = dis.readUTF();
-            if(accion.equals("hola")){
-                System.out.println("El cliente con idSesion "+this.idSessio+" saluda");
-                padre.addMensaje("El cliente con idSesion "+this.idSessio+" saluda",'k');
-                dos.writeUTF("adios");
-            }
-            else
+            boolean seguir = true;
+            while (seguir)
             {
-               System.out.println("mensaje no reconocido");
+                accion = dis.readUTF();
+                if(accion.compareTo("") != 0)
+                {
+                    if(accion.compareTo("hola") == 0)
+                    {
+                        System.out.println("El cliente con idSesion "+this.idSessio+" saluda");
+                        padre.addMensaje("\nEl cliente con idSesion "+this.idSessio+" saluda",'k');
+                        dos.writeUTF("adios");
+                    }
+                    else
+                    {
+                       System.out.println("mensaje no reconocido -> "+accion);
+                    }
+                }
             }
         } catch (IOException ex) {
             /*Logger.getLogger(hilo.class.getName()).log(Level.SEVERE, null, ex);*/

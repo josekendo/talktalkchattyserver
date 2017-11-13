@@ -8,12 +8,17 @@ package serverttc;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +28,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -118,20 +124,19 @@ public class seguridad {
     }
     
     //crea la hash del password 
-    public byte[] sha512(String password)
+    public String sha512(String password)
     {
         try{
             MessageDigest md= MessageDigest.getInstance("SHA-512");
-            md.update(password.getBytes("UTF-8"));
+            md.update(password.getBytes());
             byte[] mb = md.digest();
             //Arrays.toString(mb) comprobante
-            return mb;
-        }
-        catch(NoSuchAlgorithmException ex)        
+            byte[] encoded = Base64.encodeBase64(mb);
+            System.out.println(new String(encoded));
+            return new String(encoded,"UTF-8");
+        }catch(UnsupportedEncodingException | NoSuchAlgorithmException ex)
         {
             System.out.println(ex);
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(seguridad.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -146,12 +151,8 @@ public class seguridad {
             byte[] ncpr = this.clavePrivada.getEncoded();
             byte[] ncs = this.claveSecreta.getEncoded();
             almacenamiento al = new almacenamiento();
-            try {
-                System.out.print(new String(ncp,"UTF-8")+" - "+new String(ncp,"UTF-8")+" - "+new String(ncp,"UTF-8"));
-                al.guardarClaves(new String(ncp,"UTF-8"),new String(ncp,"UTF-8"),new String(ncp,"UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(seguridad.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            al.guardarClaves(new String(Base64.encodeBase64(ncp)),new String(Base64.encodeBase64(ncpr)),new String(Base64.encodeBase64(ncs)));
+            System.out.println("cp-"+new String(Base64.encodeBase64(ncp)));
         }
     }
     
@@ -164,4 +165,41 @@ public class seguridad {
     {
         return this.claveSession;//devolvemos nuestra clave publica
     }
+    
+    public boolean loadcpr(String clave)
+    {
+        byte[] claveB = clave.getBytes();
+        try
+        {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeySpec keySpec = new PKCS8EncodedKeySpec(claveB);
+            PrivateKey keyFromBytes = keyFactory.generatePrivate(keySpec);
+            this.clavePrivada = keyFromBytes;
+            return true;
+        }catch(NoSuchAlgorithmException | InvalidKeySpecException ex)
+        {
+            System.out.println(ex);
+        }
+        return false;
+    }
+    
+    public boolean loadcp(String clave)
+    {
+        byte[] claveB = clave.getBytes();
+        try
+        {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeySpec keySpec = new X509EncodedKeySpec(claveB);
+            PublicKey keyFromBytes = keyFactory.generatePublic(keySpec);
+            this.clavePublica = keyFromBytes;
+            byte[] ncp = this.clavePublica.getEncoded();
+            System.out.println("cp-"+new String(Base64.encodeBase64(ncp)));
+            return true;
+        }catch(NoSuchAlgorithmException | InvalidKeySpecException ex)
+        {
+            System.out.println(ex);
+        }
+        return false;
+    }
+    
 }

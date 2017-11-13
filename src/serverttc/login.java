@@ -34,6 +34,7 @@ public class login extends javax.swing.JFrame {
         pass = new javax.swing.JPasswordField();
         jButton1 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
+        error = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login Server");
@@ -66,6 +67,9 @@ public class login extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 8)); // NOI18N
         jLabel3.setText("Login Servidor");
 
+        error.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        error.setForeground(new java.awt.Color(204, 0, 0));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -75,21 +79,24 @@ public class login extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(41, 41, 41)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(user)
-                            .addComponent(pass, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel2))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(user)
+                                    .addComponent(pass, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(14, 14, 14)
+                                .addComponent(error, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 370, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(247, 247, 247)
-                .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(236, 236, 236))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -105,7 +112,9 @@ public class login extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(pass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(error))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -128,22 +137,34 @@ public class login extends javax.swing.JFrame {
             seguridad se = new seguridad();
             if(al.existeUsuarioLocal(this.user.getText()))
             {
-                System.out.println("entro aqui 1");
-                if(al.login(user.getText(),se.sha512(new String(pass.getPassword()))))
+                if(user.getText().length() >= 3 && pass.getPassword().length >= 16 && al.login(user.getText(),se.sha512(new String(pass.getPassword()))))
                 {
-                    this.llamarconsole();
+                    al.recuperarclaves(se, new String(pass.getPassword()));//con esto recuperamos las claves
+                    se.crearSessionAes();//creamos una clave de session
+                    this.llamarconsole();//llamamos a la consola
+                }
+                else
+                {
+                    this.error("Incorrecto, Contacte con el administrador");
                 }
             }
             else
             {                
-                System.out.println("entro aqui 2");
-                //inicializamos las claves
-                se.crearSecreta(new String(pass.getPassword()));
-                se.crearrsa();
-                se.getClaveSession();
-                //se.guardarMisClaves();
-                al.crearNuevoUsuarioLocal(user.getText(),new String(se.sha512(new String(pass.getPassword()))));
-                this.llamarconsole();
+                if(pass.getPassword().length >= 16 && user.getText().length() >= 3)
+                {
+                    //inicializamos las claves
+                    se.crearSecreta(new String(pass.getPassword()));
+                    se.crearrsa();
+                    se.getClaveSession();
+                    se.guardarMisClaves();//solo se ejecuta aqui
+                    al.crearNuevoUsuarioLocal(user.getText(),se.sha512(new String(pass.getPassword())));
+                    this.llamarconsole();
+                }
+                else
+                {
+                    this.error("X el password 16 caracteres y usuario 3 como minimo");
+                }
+                
             }
         }
     }//GEN-LAST:event_jButton1MouseClicked
@@ -189,8 +210,14 @@ public class login extends javax.swing.JFrame {
             nueva.setVisible(true);
             nueva.setLocationRelativeTo(null);
     }
+    
+    public void error(String er)
+    {
+        error.setText(er);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel error;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

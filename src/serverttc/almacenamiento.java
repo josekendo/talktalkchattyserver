@@ -23,19 +23,25 @@ public class almacenamiento {
     //todo en esta clase se guarda en formato texto la encriptacion se hace con la clave aes secreta personal e intransferible 
     
     //recupera nuestras claves si existen
-    public void recuperarclaves(seguridad seg)
+    public void recuperarclaves(seguridad se,String clave)
     {
-      File directorio=new File("keys");
-      if(directorio.exists())
+      File archivo=new File("keys.dat");
+      if(archivo.exists())
       {
-          
+          String lineas[] = leer(archivo);
+          if(lineas.length == 3)
+          {
+              se.loadcp(lineas[0]);
+              se.loadcpr(lineas[1]);
+              se.crearSecreta(clave);
+          }
       }  
     }
     
     //guarda nuestras claves
     public void guardarClaves(String clavepublica,String claveprivada,String clavesecreta)
     {
-        File directorio=new File("keys");
+        File directorio=new File("keys.dat");
         if(directorio.exists())
         {
             //sobreescribimos el archivo
@@ -133,16 +139,15 @@ public class almacenamiento {
     }
     
     //verificara si el login es correcto
-    public boolean login(String email, byte[] VefPass)
+    public boolean login(String email, String VefPass)
     {
         if(this.existeUsuarioLocal(email))
         {
              File vef=new File(email+".dat");
-             if(vef.exists())
+             if(vef.exists() && this.leer(vef).length == 1)
              {
-                 String pass = new String(VefPass);
                  //leemos el contenido
-                if (pass.compareTo(this.leer(vef)) == 0)
+                if (VefPass.compareTo(this.leer(vef)[0]) == 0)
                 {
                     return true;
                 }
@@ -156,7 +161,6 @@ public class almacenamiento {
     {
         String sFichero = idUser+".dat";
         String sFichero2 = "exis";
-        System.out.println(sFichero);
         File fichero = new File(sFichero);
         File fichero2 = new File(sFichero2);
         if(fichero.exists() || fichero2.exists())
@@ -167,18 +171,30 @@ public class almacenamiento {
     }
     
     //lee un fichero y devuelve si un string
-    public String leer(File archivo)
+    public String[] leer(File archivo)
     {
-        String cadena;
+        String cadena,cadena3;
+        cadena3="";
         try{
+        String cadena2 [];
+        int contador = 0;
         FileReader f = new FileReader(archivo);
         BufferedReader b = new BufferedReader(f);
         while((cadena = b.readLine())!=null)
         {
-            System.out.println(cadena);
+            if(contador ==0)
+            {    
+                cadena3=cadena3+cadena;
+            }
+            else
+            {
+                cadena3=cadena3+"@#?¿"+cadena;
+            }
+            contador++;
         }
         b.close();
-        return cadena;
+        cadena2 = new String[contador];
+        return cadena2;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(almacenamiento.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

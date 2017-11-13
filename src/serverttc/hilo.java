@@ -41,18 +41,18 @@ public class hilo extends Thread {
     public void run() {
         String accion;
         try {
-            dos.writeUTF("Hola soy el servidor\n");
+            dos.writeUTF("SConectado");
             boolean seguir = true;
             while (seguir)
             {
                 accion = dis.readUTF();
                 if(accion.compareTo("") != 0)
                 {
-                    if(accion.compareTo("hola") == 0)
+                    if(accion.compareTo("CBienvenido") == 0)
                     {
                         System.out.println("El cliente con idSesion "+this.idSessio+" saluda");
                         padre.addMensaje("\nEl cliente con idSesion "+this.idSessio+" saluda",'k');
-                        dos.writeUTF("adios");
+                        dos.writeUTF("SAES");
                     }
                     else
                     {

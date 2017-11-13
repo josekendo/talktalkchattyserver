@@ -38,7 +38,20 @@ public class Consola extends javax.swing.JFrame {
             
         }
     }
-
+    public Consola(login padre){
+        initComponents();
+        
+        try
+        {
+            this.inicio();
+            padre.dispose();
+        }
+        catch(BadLocationException e)
+        {
+            
+        }
+    }
+    
     public void startM()
     {
         if(this.startenabled)

@@ -29,7 +29,7 @@ public class almacenamiento {
       if(archivo.exists())
       {
           String lineas[] = leer(archivo);
-          if(lineas.length == 3)
+          if(lineas.length >= 3)
           {
               se.loadcp(lineas[0]);
               se.loadcpr(lineas[1]);
@@ -52,14 +52,14 @@ public class almacenamiento {
             //creamos el archivo
             try{
             directorio.createNewFile();
-            BufferedWriter bw = new BufferedWriter(new FileWriter(directorio));
-            bw.write(clavepublica);//primera linea clave publica
-            bw.newLine();
-            bw.write(claveprivada);//segunda linea clave privada
-            bw.newLine();
-            bw.write(clavesecreta);//tercera linea clave secreta
-            bw.close();
-            }catch(Exception ex)
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(directorio))) {
+                    bw.write(clavepublica);//primera linea clave publica
+                    bw.newLine();
+                    bw.write(claveprivada);//segunda linea clave privada
+                    bw.newLine();
+                    bw.write(clavesecreta);//tercera linea clave secreta
+                } //primera linea clave publica
+            }catch(IOException ex)
             {
                 System.out.println(ex);
             }
@@ -163,11 +163,7 @@ public class almacenamiento {
         String sFichero2 = "exis";
         File fichero = new File(sFichero);
         File fichero2 = new File(sFichero2);
-        if(fichero.exists() || fichero2.exists())
-        {
-            return true;
-        }
-        return false;
+        return fichero.exists() || fichero2.exists();
     }
     
     //lee un fichero y devuelve si un string
@@ -179,21 +175,30 @@ public class almacenamiento {
         String cadena2 [];
         int contador = 0;
         FileReader f = new FileReader(archivo);
-        BufferedReader b = new BufferedReader(f);
-        while((cadena = b.readLine())!=null)
+        try (BufferedReader b = new BufferedReader(f)) 
         {
-            if(contador ==0)
-            {    
-                cadena3=cadena3+cadena;
-            }
-            else
+            while((cadena = b.readLine())!=null)
             {
-                cadena3=cadena3+"@#?¿"+cadena;
-            }
-            contador++;
+                if(contador == 0)
+                {
+                    cadena3=cadena3+cadena;
+                }
+                else
+                {
+                    cadena3=cadena3+"marijose"+cadena;
+                }
+                contador++;
+            }   
         }
-        b.close();
-        cadena2 = new String[contador];
+        if(contador == 1)
+        {
+            cadena2 = new String[1];
+            cadena2[0] = cadena3;
+        }
+        else
+        {
+            cadena2 = cadena3.split("marijose");
+        }
         return cadena2;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(almacenamiento.class.getName()).log(Level.SEVERE, null, ex);

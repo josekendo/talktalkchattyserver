@@ -25,6 +25,7 @@ public class Consola extends javax.swing.JFrame {
     private Tarea servi;
     private boolean startenabled = true;
     private server ser;
+    private seguridad se;
     
     public Consola(){
         initComponents();
@@ -44,7 +45,12 @@ public class Consola extends javax.swing.JFrame {
         try
         {
             this.inicio();
+            se = padre.getse();
             padre.dispose();
+            String s = se.desencriptarAes(se.getClaveSession(),se.encriptarSession(se.getClaveSession(), "hola mundo"));
+            System.out.println(s);
+            s = se.encriptarPublica(se.getClavePublica(), "hola madre");
+            System.out.println(se.desencriptarPrivada(s));
         }
         catch(BadLocationException e)
         {

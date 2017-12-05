@@ -14,6 +14,7 @@ public class login extends javax.swing.JFrame {
     /**
      * Creates new form login
      */
+    private seguridad se;
     public login() {
         initComponents();
     }
@@ -134,11 +135,13 @@ public class login extends javax.swing.JFrame {
         if(this.pass != null && this.user != null)
         {
             almacenamiento al = new almacenamiento();
-            seguridad se = new seguridad();
+            se = new seguridad();
             if(al.existeUsuarioLocal(this.user.getText()))
             {
+                System.out.println("Entro en recuperacion");
                 if(user.getText().length() >= 3 && pass.getPassword().length >= 16 && al.login(user.getText(),se.sha512(new String(pass.getPassword()))))
                 {
+                    System.out.println("Entro en recuperacion 2");
                     al.recuperarclaves(se, new String(pass.getPassword()));//con esto recuperamos las claves
                     se.crearSessionAes();//creamos una clave de session
                     this.llamarconsole();//llamamos a la consola
@@ -214,6 +217,11 @@ public class login extends javax.swing.JFrame {
     public void error(String er)
     {
         error.setText(er);
+    }
+    
+    public seguridad getse()
+    {
+        return se;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

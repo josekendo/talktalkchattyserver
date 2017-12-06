@@ -234,7 +234,6 @@ public class seguridad {
             byte[] ncs = this.claveSecreta.getEncoded();
             almacenamiento al = new almacenamiento();
             al.guardarClaves(new String(Base64.encodeBase64(ncp)),new String(Base64.encodeBase64(ncpr)),new String(Base64.encodeBase64(ncs)));
-            System.out.println("cp-"+new String(Base64.encodeBase64(ncp)));
         }
     }
     
@@ -244,10 +243,26 @@ public class seguridad {
         return this.clavePublica;//devolvemos nuestra clave publica
     }
 
+    //devolvemos nuestra clave publica generada la primera ejecucion para enviarla a un cliente o servidor
+    public String getClavePublica_envio()
+    {
+        byte[] ncp = this.clavePublica.getEncoded();
+        String clave = new String(Base64.encodeBase64(ncp));
+        return clave;//devolvemos nuestra clave publica
+    }
+    
     //recuperamos nuestra clave de session generada al arrancar el cliente o el servidor
     public Key getClaveSession()
     {
         return this.claveSession;//devolvemos nuestra clave publica
+    }
+    
+    //devolvemos nuestra clave publica generada la primera ejecucion para enviarla a un cliente o servidor
+    public String getClaveSession_envio()
+    {
+        byte[] ncp = this.claveSession.getEncoded();
+        String clave = new String(Base64.encodeBase64(ncp));
+        return clave;//devolvemos nuestra clave publica
     }
     //recuperamos la clave privada
     public boolean loadcpr(String clave)
@@ -267,6 +282,39 @@ public class seguridad {
         }
         return false;
     }
+    //recuperamos la clave secreta o session
+    public boolean loadcs(String clave)
+    {
+        byte[] clavepreB = Base64.decodeBase64(clave);
+        byte[] claveB = clavepreB;
+        try
+        {
+            KeyFactory keyFactory = KeyFactory.getInstance("AES");
+            Key key = new SecretKeySpec(claveB, "AES");
+            this.claveSecreta = key;
+            return true;
+        }catch(NoSuchAlgorithmException ex)
+        {
+            System.out.println(ex);
+        }
+        return false;
+    }
+    //recuperamos la clave secreta o session
+    public Key loadcs_externa(String clave)
+    {
+        byte[] clavepreB = Base64.decodeBase64(clave);
+        byte[] claveB = clavepreB;
+        try
+        {
+            KeyFactory keyFactory = KeyFactory.getInstance("AES");
+            Key key = new SecretKeySpec(claveB, "AES");
+            return key;
+        }catch(NoSuchAlgorithmException ex)
+        {
+            System.out.println(ex);
+        }
+        return null;
+    }
     //recuperamos la clave publica
     public boolean loadcp(String clave)
     {
@@ -284,6 +332,23 @@ public class seguridad {
             System.out.println(ex);
         }
         return false;
+    }
+    //recuperamos la clave publica
+    public PublicKey loadcp_externa(String clave)
+    {
+        byte[] clavepreB = Base64.decodeBase64(clave);
+        byte[] claveB = clavepreB;
+        try
+        {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeySpec keySpec = new X509EncodedKeySpec(claveB);
+            PublicKey keyFromBytes = keyFactory.generatePublic(keySpec);
+            return keyFromBytes;
+        }catch(NoSuchAlgorithmException | InvalidKeySpecException ex)
+        {
+            System.out.println(ex);
+        }
+        return null;
     }
     //le pasas(nombre,email o id) segun como se inicialice, te devuelve la clave publica de ese usuario para encriptar los mensajes que le vas a enviar
     public PublicKey devolver_publica(String n)
@@ -335,13 +400,22 @@ public class seguridad {
         }
         return null;
     }
-    //creamos un usuario y su clave publica y privada a null
-    //las siguiente dos funciones son para rellenar la publica y la privada
-    public void crearUser(String n)
+    //creamos un usuario(id) y su clave publica y privada
+    public void crearUser(String n,Key session, PublicKey publica)
     {
         this.nombre.add(n);
-        this.clave_session.add(null);
-        this.claves_publicas.add(null);
+        this.clave_session.add(session);//esto se agrega cuando tenemos su id del server
+        this.claves_publicas.add(publica);//esto se agrega cuando tenemos su id del server
+    }
+    //funcion para encriptar con nuestra clave aes y su publica 
+    public String encriptarMiSessionSuPublica(String id,String mensaje)//id del usuario al que se va a enviar
+    {
+        return this.encriptarPublica(this.devolver_publica(id), this.encriptarSession(this.claveSession,mensaje));
+    }
+    //version mas robusta se encripta primero con mi session luego con su session y por ultimo con su publica(no utilizada por comodidad)
+    public String encriptarMiSessionSuSessionSuPublica(String id,String mensaje)//id del usuario al que se va enviar
+    {
+        return this.encriptarPublica(this.devolver_publica(id),this.encriptarSession(this.devolver_session(id),this.encriptarSession(this.claveSession,mensaje)));    
     }
     
 }

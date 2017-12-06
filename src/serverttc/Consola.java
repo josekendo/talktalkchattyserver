@@ -6,6 +6,7 @@
 package serverttc;
 
 import java.awt.Color;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,7 @@ public class Consola extends javax.swing.JFrame {
     private boolean startenabled = true;
     private server ser;
     private seguridad se;
+    private almacenamiento al;
     
     public Consola(){
         initComponents();
@@ -47,10 +49,11 @@ public class Consola extends javax.swing.JFrame {
             this.inicio();
             se = padre.getse();
             padre.dispose();
-            String s = se.desencriptarAes(se.getClaveSession(),se.encriptarSession(se.getClaveSession(), "hola mundo"));
-            System.out.println(s);
-            s = se.encriptarPublica(se.getClavePublica(), "hola madre");
-            System.out.println(se.desencriptarPrivada(s));
+            al = new almacenamiento();
+            al.recuperarids(this);
+            al.registro("josekendo2@hotmail.com","jose vicente", "asdf", "imagenenbinario");
+            al.recuperarids(this);
+            al.login("josekendo2@hotmail.com", "asdf",null);
         }
         catch(BadLocationException e)
         {
@@ -244,6 +247,42 @@ public class Consola extends javax.swing.JFrame {
     {
         this.start.setEnabled(false);
         this.startenabled = false;
+    }
+    
+    public void comprobarEMAIL(String e,DataOutputStream cliente)
+    {
+        if(al.existeUsuarioBD(e))
+        {
+            try {
+                cliente.writeUTF("existEmail"+"#odin@"+e+"#odin@"+"false");
+            } catch (IOException ex) {
+                Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        else
+        {
+            try {
+                cliente.writeUTF("existEmail"+"#odin@"+e+"#odin@"+"true");
+            } catch (IOException ex) {
+                Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public String recuperarPublica()
+    {
+        return se.getClavePublica_envio();
+    }
+    
+    public String recuperarSession()
+    {
+        return se.getClaveSession_envio();
+    }
+    
+    public seguridad recuperarSE()
+    {
+        return se;
     }
 
     public void habilitarInicio()

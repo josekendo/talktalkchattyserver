@@ -7,6 +7,7 @@ package serverttc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
  */
 public class almacenamiento {
     //todo en esta clase se guarda en formato texto la encriptacion se hace con la clave aes secreta personal e intransferible 
-    
+    private int contadorIDS;
     //recupera nuestras claves si existen
     public void recuperarclaves(seguridad se,String clave)
     {
@@ -34,6 +35,37 @@ public class almacenamiento {
               se.loadcp(lineas[0]);
               se.loadcpr(lineas[1]);
               se.crearSecreta(clave);
+              se.crearSessionAes();
+              //aqui tenemos todas las claves nuestras
+          }
+      }  
+    }
+    
+    public void recuperarids(Consola padre)
+    {
+      File archivo=new File("keys.dat");
+      if(archivo.exists())
+      {
+          String lineas[] = leer(archivo);
+          if(lineas.length >= 3)
+          {
+              this.contadorIDS = Integer.parseInt(lineas[3]);
+              padre.addMensaje("\nNumero de usuarios en el sistema -> "+Integer.toString(this.contadorIDS), 'b');
+              //aqui tenemos todas las claves nuestras
+          }
+      }  
+    }
+
+    public void recuperarids()
+    {
+      File archivo=new File("keys.dat");
+      if(archivo.exists())
+      {
+          String lineas[] = leer(archivo);
+          if(lineas.length >= 3)
+          {
+              this.contadorIDS = Integer.parseInt(lineas[3]);
+              //aqui tenemos todas las claves nuestras
           }
       }  
     }
@@ -45,7 +77,23 @@ public class almacenamiento {
         if(directorio.exists())
         {
             //sobreescribimos el archivo
-            
+            //creamos el archivo
+            try{
+                directorio.createNewFile();
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(directorio))) {
+                    bw.write(clavepublica);//primera linea clave publica
+                    bw.newLine();
+                    bw.write(claveprivada);//segunda linea clave privada
+                    bw.newLine();
+                    bw.write(clavesecreta);//tercera linea clave secreta
+                    bw.newLine();
+                    bw.write(Integer.toString(this.contadorIDS));
+                    bw.newLine();
+                } //primera linea clave publica
+            }catch(IOException ex)
+            {
+                System.out.println(ex);
+            }            
         }
         else
         {
@@ -58,6 +106,9 @@ public class almacenamiento {
                     bw.write(claveprivada);//segunda linea clave privada
                     bw.newLine();
                     bw.write(clavesecreta);//tercera linea clave secreta
+                    bw.newLine();
+                    bw.write(Integer.toString(000));
+                    bw.newLine();
                 } //primera linea clave publica
             }catch(IOException ex)
             {
@@ -66,16 +117,17 @@ public class almacenamiento {
         }
     }
     
+    
     //nos sirve para crear un nuevo usuario en el sistema
-    public void crearNuevoUsuario(String email, String VerificacionPassword)
+    public void crearNuevoUsuario(String email, String VerificacionPassword,String nombre, String foto)
     {
         //creamos una carpeta con el email 
         //File directorio=new File(email.replace("@", "arroba"));
         File directorio=new File(email);
         directorio.mkdir();   
         //creamos un archivo vef que contenga la varificacion del password
-        String ruta = "/"+email+"/vef";
-        String ruta2 = "/"+email+"/chat";//este archivo actua como pila si le envian un mensaje se almacena y luego se procesa cuando se confirma se borra esa linea
+        String ruta = email+"/vef";//datos del usuario
+        String ruta2 = email+"/chat";//este archivo actua como pila si le envian un mensaje se almacena y luego se procesa cuando se confirma se borra esa linea
         File archivo2 = new File(ruta2);
         File archivo = new File(ruta);
         BufferedWriter bw;
@@ -86,7 +138,16 @@ public class almacenamiento {
                 archivo.createNewFile();
                 archivo2.createNewFile();
                 bw = new BufferedWriter(new FileWriter(archivo));
-                bw.write(VerificacionPassword);
+                bw.write(VerificacionPassword);//password
+                bw.newLine();
+                bw.write(nombre);//nombre
+                bw.newLine();
+                bw.write(foto);//foto
+                bw.newLine();
+                this.recuperarids();
+                bw.write(Integer.toString(this.contadorIDS++));//id
+                bw.newLine();
+                this.guardarids();
                 bw.close();
             }catch(IOException ex)
             {
@@ -94,6 +155,20 @@ public class almacenamiento {
             }
         }
     }
+    
+    public void guardarids()
+    {
+      File archivo=new File("keys.dat");
+      if(archivo.exists())
+      {
+          String lineas[] = leer(archivo);
+          if(lineas.length >= 3)
+          {
+              this.guardarClaves(lineas[0], lineas[1], lineas[2]);
+          }
+      }
+    }
+    
     //nos sirve para crear un nuevo usuario en el sistema
     public void crearNuevoUsuarioLocal(String nickname, String VerificacionPassword)
     {
@@ -124,13 +199,45 @@ public class almacenamiento {
         }
     }
     
-    //agregamos la clave publica a la carpeta de ese usuario
-    public void crearClavePublica(String email, String clave)
+    //con esta opcion si no existe el usuario se crea se devuelve el id de usuario
+    public String registro(String email,String nombre, String password, String foto)
     {
-        //creamos clavePublica en su carpeta
-        
+        if(!this.existeUsuarioBD(email))
+        {
+            //vamos a crear las carpetas y archivo
+            this.crearNuevoUsuario(email, password, nombre, foto);
+            return Integer.toString(this.contadorIDS);
+        }
+        return "00";//este significa que no se ha producido el registro porque existe el usuario
     }
     
+    //comprobamos con los datos locales y devolvemos los datos
+    public void login(String email,String vefpassword,DataOutputStream canal)
+    {  
+        String mensaje = "login#odin@false";
+        if(existeUsuarioBD(email))
+        {
+            File archivo=new File(email+"/vef");
+            if(archivo.exists())
+            {
+                String InfoUser [] = this.leer(archivo);
+                if(InfoUser[0].compareTo(vefpassword) == 0)
+                {
+                    mensaje = "login#odin@true#odin@"+InfoUser[1]+"#odin@"+InfoUser[2]+"#odin@"+InfoUser[3]+"#odin@"+email;
+                }
+            }
+        }
+        System.out.println(mensaje);
+        try
+        {
+            //encriptar
+            canal.writeUTF(mensaje);
+        }catch(IOException ex)
+        {
+        
+        }
+        
+    }
     //esto nos sirve para saber si existe el usuario(servidor)
     public boolean existeUsuarioBD(String email)
     {

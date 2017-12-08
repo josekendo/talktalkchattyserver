@@ -212,9 +212,11 @@ public class almacenamiento {
     }
     
     //comprobamos con los datos locales y devolvemos los datos
-    public void login(String email,String vefpassword,DataOutputStream canal)
+    public String[] loginUser(String email,String vefpassword)
     {  
-        String mensaje = "login#odin@false";
+        String mensaje[] = new String[2];
+        mensaje[0] = "contestLogin#odin@00#odin@desconocido";
+        mensaje[1] = "nada";
         if(existeUsuarioBD(email))
         {
             File archivo=new File(email+"/vef");
@@ -223,20 +225,12 @@ public class almacenamiento {
                 String InfoUser [] = this.leer(archivo);
                 if(InfoUser[0].compareTo(vefpassword) == 0)
                 {
-                    mensaje = "login#odin@true#odin@"+InfoUser[1]+"#odin@"+InfoUser[2]+"#odin@"+InfoUser[3]+"#odin@"+email;
+                    mensaje[0] = "contestLogin#odin@"+InfoUser[3]+"#odin@"+InfoUser[1];
+                    mensaje[1] = InfoUser[2];
                 }
             }
         }
-        System.out.println(mensaje);
-        try
-        {
-            //encriptar
-            canal.writeUTF(mensaje);
-        }catch(IOException ex)
-        {
-        
-        }
-        
+        return mensaje;
     }
     //esto nos sirve para saber si existe el usuario(servidor)
     public boolean existeUsuarioBD(String email)

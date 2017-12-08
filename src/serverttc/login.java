@@ -158,6 +158,7 @@ public class login extends javax.swing.JFrame {
                     //inicializamos las claves
                     se.crearSecreta(new String(pass.getPassword()));
                     se.crearrsa();
+                    se.crearSessionAes();//creamos una clave de session
                     se.getClaveSession();
                     se.guardarMisClaves();//solo se ejecuta aqui
                     al.crearNuevoUsuarioLocal(user.getText(),se.sha512(new String(pass.getPassword())));

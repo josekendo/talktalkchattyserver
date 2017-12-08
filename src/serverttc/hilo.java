@@ -21,8 +21,8 @@ public class hilo extends Thread {
     private DataInputStream dis;
     private int idSessio;
     private Consola padre;
-    private Key clave_session;
-    private PublicKey clave_publica;
+    private Key clave_session;//todas las conexiones se cifraran con esta 
+    private PublicKey clave_publica;//el intercambio de claves sera con esta
     
     public hilo(Socket socket, int id, Consola p) {
         this.socket = socket;
@@ -53,42 +53,55 @@ public class hilo extends Thread {
                 accion = dis.readUTF();
                 if(accion.compareTo("") != 0)
                 {
-                    if(padre.recuperarSE().desencriptarPrivada(accion).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(accion).split("#odin@")[0].compareToIgnoreCase("Cbienvenida") == 0)//recibimos la bienvenida del cliente con su clave publica
+                    if(accion.split("#odin@").length >= 2 && accion.split("#odin@")[0].compareToIgnoreCase("Cbienvenida") == 0)//recibimos la bienvenida del cliente con su clave publica
                     {
-                        String partes [] = padre.recuperarSE().desencriptarPrivada(accion).split("#odin@");
+                        String partes [] = accion.split("#odin@");
                         this.clave_publica = padre.recuperarSE().loadcp_externa(partes[1]);
-                        dos.writeUTF(padre.recuperarSE().encriptarPublica(clave_publica, "CVok@odin#"+padre.recuperarSE().getClaveSession_envio()));//ahora le informamos que tenemos la clave publica que nos envie la de session
+                        String mensaje = "CVok#odin@"+padre.recuperarSE().getClaveSession_envio();
+                        mensaje = padre.recuperarSE().encriptarPublica(clave_publica,mensaje);//encriptamos nuestra clave de session con su clave publica y se la enviamos
+                        dos.writeUTF(mensaje);//ahora le informamos que tenemos la clave publica que nos envie la de session
                     }
-                    else if(padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@")[0].compareToIgnoreCase("CSok") == 0)
+                    else if(padre.recuperarSE().desencriptarPrivada(accion) != null && padre.recuperarSE().desencriptarPrivada(accion).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(accion).split("#odin@")[0].compareToIgnoreCase("CSok") == 0)
                     {
-                        //aqui nos viene encriptado con nuestra clave publica(2) y con nuestra clave de session(1) se podria en las siguiente agregar tambien la suya propia pero para este chat no es necesario
-                        String partes [] = padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@");
+                        //aqui nos viene encriptado con nuestra clave publica(2)
+                        System.out.println("entro en f3");
+                        String partes [] = padre.recuperarSE().desencriptarPrivada(accion).split("#odin@");
                         this.clave_session = padre.recuperarSE().loadcs_externa(partes[1]);
                         //ya tenemos la clave publica y de session de este cliente
-                        this.padre.addMensaje("Confirmacion de enlace seguro con conexion -> "+this.idSessio,'g');
+                        this.padre.addMensaje("\nConfirmacion de enlace seguro con conexion -> "+this.idSessio,'g');
+                        System.out.println("entro en f4");
+                        dos.writeUTF(padre.recuperarSE().encriptarMiSessionSuSession("CONFISECURITY#odin@true", clave_session));
+                        System.out.println("entro en f5");
                     }
-                    else if(padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@")[0].compareToIgnoreCase("existEmail") == 0)
+                    else if(accion.contains("#hela@") == false && padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@")[0].compareToIgnoreCase("existEmail") == 0)
                     {
-                        String partes [] = padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@");
-                        padre.addMensaje("Se esta comprobando verificacion del usuario",'k');
-                        padre.comprobarEMAIL(partes[1],dos);
+                        String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@");
+                        padre.addMensaje("\nSe esta comprobando verificacion del usuario",'k');
+                        String mensaje = "existEmail#odin@"+padre.comprobarEMAIL(partes[1])+"#odin@"+partes[1];
+                        dos.writeUTF(padre.recuperarSE().encriptarMiSessionSuSession(mensaje, clave_session));
                     }
-                    else if(padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@")[0].compareToIgnoreCase("RegistroUser") == 0)
+                    else if(accion.contains("#hela@") == true &&padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@")[0].compareToIgnoreCase("RegistroUser") == 0)
                     {
-                         String partes [] = padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@");
+                         String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@");
+                         String imagen = accion.split("#hela@")[1];
                          almacenamiento al = new almacenamiento();
-                         al.registro(partes[1],partes[2],partes[3],partes[4]);
+                         //primero email, nombre, password, foto
+                         String respuesta = al.registro(partes[1],partes[2],partes[3],imagen);
+                         String mensaje = "contestRegistro#odin@"+padre.comprobarEMAIL(partes[1])+"#odin@"+respuesta;
+                         dos.writeUTF(padre.recuperarSE().encriptarMiSessionSuSession(mensaje, clave_session));
+                         
                     }
-                    else if(padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@")[0].compareToIgnoreCase("LoginUser") == 0)
+                    else if(padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@")[0].compareToIgnoreCase("LoginUser") == 0)
                     {
-                        String partes [] = padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@");
+                        String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@");
                         //segundo valor es el email, tercero la verificacion del password 
                         almacenamiento al = new almacenamiento();
-                        al.login(partes[1], partes[2], dos);
+                        String devolucion [] = al.loginUser(partes[1], partes[2]);
+                        dos.writeUTF(padre.recuperarSE().encriptarMiSessionSuSession(devolucion[0], clave_session)+"#hela@"+devolucion[1]);
                     }
-                    else if(padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@")[0].compareToIgnoreCase("SentMen") == 0)
+                    else if(padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@")[0].compareToIgnoreCase("SentMen") == 0)
                     {
-                        String partes [] = padre.recuperarSE().desencriptarPrivada(padre.recuperarSE().desencriptarAes(clave_session, accion)).split("#odin@");
+                        String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@");
                         //segundo valor es el id del destinatario, tercero mensaje
                     }
                     else

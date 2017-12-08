@@ -63,6 +63,7 @@ public class seguridad {
         KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(4096);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             clavePublica = keyPair.getPublic();//se genera la clave publica
             clavePrivada = keyPair.getPrivate();//se genera la clave privada
@@ -133,17 +134,20 @@ public class seguridad {
         Cipher rsa;
         rsa = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsa.init(Cipher.DECRYPT_MODE, this.clavePrivada);//se desencripta siempre con nuestra clave privada
-        String [] men = mensaje.split("@loki#");
-        byte[] mensaje_en_bytes = new byte[men.length];
-        int con = 0;
-        for(String s : men)
-        {
-            mensaje_en_bytes[con] = (byte)Integer.parseInt(s,16);//Integer.parseInt(s,16)
-            con++;
-        }
-        byte[] desencriptado = rsa.doFinal(mensaje_en_bytes);
-        String des = new String(desencriptado);
-        return des;
+            if(mensaje.contains("@loki#"))
+            {
+                String [] men = mensaje.split("@loki#");
+                byte[] mensaje_en_bytes = new byte[men.length];
+                int con = 0;
+                for(String s : men)
+                {
+                    mensaje_en_bytes[con] = (byte)Integer.parseInt(s,16);//Integer.parseInt(s,16)
+                    con++;
+                }
+                byte[] desencriptado = rsa.doFinal(mensaje_en_bytes);
+                String des = new String(desencriptado);
+                return des;
+            }
         }catch(InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException ex)
         {
            System.out.println(ex);
@@ -287,33 +291,17 @@ public class seguridad {
     {
         byte[] clavepreB = Base64.decodeBase64(clave);
         byte[] claveB = clavepreB;
-        try
-        {
-            KeyFactory keyFactory = KeyFactory.getInstance("AES");
-            Key key = new SecretKeySpec(claveB, "AES");
-            this.claveSecreta = key;
-            return true;
-        }catch(NoSuchAlgorithmException ex)
-        {
-            System.out.println(ex);
-        }
-        return false;
+        Key key = new SecretKeySpec(claveB, "AES");
+        this.claveSecreta = key;
+        return true;
     }
     //recuperamos la clave secreta o session
     public Key loadcs_externa(String clave)
     {
         byte[] clavepreB = Base64.decodeBase64(clave);
         byte[] claveB = clavepreB;
-        try
-        {
-            KeyFactory keyFactory = KeyFactory.getInstance("AES");
-            Key key = new SecretKeySpec(claveB, "AES");
-            return key;
-        }catch(NoSuchAlgorithmException ex)
-        {
-            System.out.println(ex);
-        }
-        return null;
+        Key key = new SecretKeySpec(claveB, "AES");
+        return key;
     }
     //recuperamos la clave publica
     public boolean loadcp(String clave)
@@ -407,15 +395,25 @@ public class seguridad {
         this.clave_session.add(session);//esto se agrega cuando tenemos su id del server
         this.claves_publicas.add(publica);//esto se agrega cuando tenemos su id del server
     }
-    //funcion para encriptar con nuestra clave aes y su publica 
-    public String encriptarMiSessionSuPublica(String id,String mensaje)//id del usuario al que se va a enviar
+    //funcion para encriptar con nuestra clave aes y su session 
+    public String encriptarMiSessionSuSession(String mensaje,Key sessionSuya)//id del usuario al que se va a enviar
     {
-        return this.encriptarPublica(this.devolver_publica(id), this.encriptarSession(this.claveSession,mensaje));
+        return this.encriptarSession(sessionSuya,this.encriptarSession(this.claveSession, mensaje));
     }
-    //version mas robusta se encripta primero con mi session luego con su session y por ultimo con su publica(no utilizada por comodidad)
-    public String encriptarMiSessionSuSessionSuPublica(String id,String mensaje)//id del usuario al que se va enviar
+    // se encripta primero con mi session luego con su session se busca la session en la bd de datos de sesiones activas
+    public String encriptarMiSessionSuSession(String id,String mensaje)//id del usuario al que se va enviar
     {
-        return this.encriptarPublica(this.devolver_publica(id),this.encriptarSession(this.devolver_session(id),this.encriptarSession(this.claveSession,mensaje)));    
+        return this.encriptarSession(this.devolver_session(id),this.encriptarSession(this.claveSession, mensaje));
+    }
+    //desencripta 
+    public String desencriptarMiSessionSuSession(String mensaje,Key sessionSuya)//id del usuario al que se va a enviar
+    {
+        return this.desencriptarAes(sessionSuya,this.desencriptarAes(this.claveSession, mensaje));
+    }
+    //desencripta buscando el ultimo en la base de datos
+    public String desencriptarMiSessionSuSession(String id,String mensaje,Key sessionSuya)//id del usuario al que se va a enviar
+    {
+        return this.desencriptarAes(this.devolver_session(id),this.desencriptarAes(this.claveSession, mensaje));
     }
     
 }

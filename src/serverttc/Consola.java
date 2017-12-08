@@ -53,7 +53,7 @@ public class Consola extends javax.swing.JFrame {
             al.recuperarids(this);
             al.registro("josekendo2@hotmail.com","jose vicente", "asdf", "imagenenbinario");
             al.recuperarids(this);
-            al.login("josekendo2@hotmail.com", "asdf",null);
+            //al.login("josekendo2@hotmail.com", "asdf",null);
         }
         catch(BadLocationException e)
         {
@@ -249,24 +249,15 @@ public class Consola extends javax.swing.JFrame {
         this.startenabled = false;
     }
     
-    public void comprobarEMAIL(String e,DataOutputStream cliente)
+    public boolean comprobarEMAIL(String e)
     {
         if(al.existeUsuarioBD(e))
         {
-            try {
-                cliente.writeUTF("existEmail"+"#odin@"+e+"#odin@"+"false");
-            } catch (IOException ex) {
-                Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
+            return false;
         }
         else
         {
-            try {
-                cliente.writeUTF("existEmail"+"#odin@"+e+"#odin@"+"true");
-            } catch (IOException ex) {
-                Logger.getLogger(Consola.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            return true;
         }
     }
     

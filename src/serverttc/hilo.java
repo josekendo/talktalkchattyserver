@@ -107,10 +107,13 @@ public class hilo extends Thread {
                     }
                     else if(accion.contains("#hela@") == true &&padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@")[0].compareToIgnoreCase("creGrupo") == 0)
                     {
+                         System.out.println("parte creacion grupo");
                          String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@");
                          String imagen = accion.split("#hela@")[1];
                          almacenamiento al = new almacenamiento();
                          //primero email, nombre, password, foto
+                         System.out.println("creando un grupo");
+                         if(partes.length >= 4)
                          al.crearGrupo(partes[1], imagen, partes[2], partes[3]);
                          
                     }

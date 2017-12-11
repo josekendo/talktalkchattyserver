@@ -553,7 +553,6 @@ public class almacenamiento {
         this.guardarids();
         String ruta2 = nombre+"#hela@"+ids;//usuarios chat el primero sera la foto, el segundo el administrador luego los usuarios
         File archivo2 = new File(ruta2);
-        BufferedWriter bw;
         if(!archivo2.exists()) 
         {
             try
@@ -575,6 +574,7 @@ public class almacenamiento {
                 this.agregarUsuarioID(ids,nombre,"grupo#@#@grupo");//este es para identificar que es un grupo
                 //grupo creado
                 idss = Integer.toString(ids);
+                bw2.close();
             }catch(IOException ex)
             {
                 System.out.println("fallo al crear los archivos "+ex.getLocalizedMessage());

@@ -50,7 +50,8 @@ public class almacenamiento {
           String lineas[] = leer(archivo);
           if(lineas.length >= 3)
           {
-              this.contadorIDS = Integer.parseInt(lineas[3]);
+              System.out.println("TRUE" + lineas.length);
+              this.contadorIDS = Integer.parseInt(lineas[2]);
               padre.addMensaje("\nNumero de usuarios en el sistema -> "+Integer.toString(this.contadorIDS), 'b');
               //aqui tenemos todas las claves nuestras
           }

@@ -139,10 +139,10 @@ public class login extends javax.swing.JFrame {
             if(al.existeUsuarioLocal(this.user.getText()))
             {
                 System.out.println("Entro en recuperacion");
-                if(user.getText().length() >= 3 && pass.getPassword().length >= 16 && al.login(user.getText(),se.sha512(new String(pass.getPassword()))))
+                if(user.getText().length() >= 3 && pass.getPassword().length >= 3 && al.login(user.getText(),se.sha512(new String(pass.getPassword()))))
                 {
                     System.out.println("Entro en recuperacion 2");
-                    al.recuperarclaves(se, new String(pass.getPassword()));//con esto recuperamos las claves
+                    al.recuperarclaves(se,se.sha512(new String(pass.getPassword())));//con esto recuperamos las claves
                     se.crearSessionAes();//creamos una clave de session
                     this.llamarconsole();//llamamos a la consola
                 }
@@ -153,10 +153,10 @@ public class login extends javax.swing.JFrame {
             }
             else
             {                
-                if(pass.getPassword().length >= 16 && user.getText().length() >= 3)
+                if(pass.getPassword().length >= 3 && user.getText().length() >= 3)
                 {
                     //inicializamos las claves
-                    se.crearSecreta(new String(pass.getPassword()));
+                    se.crearSecreta(se.sha512(new String(pass.getPassword())));
                     se.crearrsa();
                     se.crearSessionAes();//creamos una clave de session
                     se.getClaveSession();
@@ -166,7 +166,7 @@ public class login extends javax.swing.JFrame {
                 }
                 else
                 {
-                    this.error("X el password 16 caracteres y usuario 3 como minimo");
+                    this.error("X el password 3 caracteres y usuario 3 como minimo");
                 }
                 
             }

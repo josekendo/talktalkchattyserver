@@ -282,6 +282,11 @@ public class Consola extends javax.swing.JFrame {
         this.startenabled = true;
     }
     
+    public void SentMen(String idOrigen, String idDestino, String mensaje)
+    {
+       
+    }
+    
     class Tarea extends Thread {
        private Consola padre; 
        

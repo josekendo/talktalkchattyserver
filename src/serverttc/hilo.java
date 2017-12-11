@@ -93,6 +93,27 @@ public class hilo extends Thread {
                          dos.writeUTF(padre.recuperarSE().encriptarMiSessionSuSession(mensaje, clave_session));
                          
                     }
+                    else if(accion.contains("#hela@") == true &&padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@")[0].compareToIgnoreCase("CambioImagen") == 0)
+                    {
+                         String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@");
+                         String imagen = accion.split("#hela@")[1];
+                         almacenamiento al = new almacenamiento();
+                         //primero email, nombre, password, foto
+                         if(this.idusuario.compareToIgnoreCase(partes[1]) == 0)
+                         {
+                            al.cambiarImagenPerfil(partes[1],imagen);
+                         }
+                         
+                    }
+                    else if(accion.contains("#hela@") == true &&padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@")[0].compareToIgnoreCase("creGrupo") == 0)
+                    {
+                         String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion.split("#hela@")[0], clave_session).split("#odin@");
+                         String imagen = accion.split("#hela@")[1];
+                         almacenamiento al = new almacenamiento();
+                         //primero email, nombre, password, foto
+                         al.crearGrupo(partes[1], imagen, partes[2], partes[3]);
+                         
+                    }
                     else if(padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@").length >= 2 && padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@")[0].compareToIgnoreCase("LoginUser") == 0)
                     {
                         String partes [] = padre.recuperarSE().desencriptarMiSessionSuSession(accion, clave_session).split("#odin@");

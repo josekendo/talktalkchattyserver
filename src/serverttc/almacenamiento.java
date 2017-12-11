@@ -384,6 +384,7 @@ public class almacenamiento {
                     user[1] = s.split("#-@")[1];
                     File foto = new File(s.split("#-@")[2]+"/vef");
                     user[2] =leer(foto)[3];
+                    System.out.println("Foto "+user[2]);
                     return user;
                 }
             }
@@ -509,4 +510,99 @@ public class almacenamiento {
             }
             
     }
+    //cambia la imagen del perfil con id -> ids 
+    public void cambiarImagenPerfil(String ids, String ima)
+    {
+            String [] datosuser= this.buscarUsuarioID2(ids);
+            String ruta2 = datosuser[2]+"/vef";
+            File archivo_com = new File(ruta2);
+            if(archivo_com.exists())
+            {
+               String [] mensajes =  this.leer(archivo_com);
+               try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo_com)))
+               {
+                    int contador=0;
+                    for(String m:mensajes)
+                    {
+                     if(contador == 2)
+                     {
+                         bw.write(ima);
+                         bw.newLine();
+                     }
+                     else
+                     {
+                         bw.write(m);
+                         bw.newLine();
+                     }
+                     contador++;   
+                    }
+               }catch(Exception ex)
+               {
+                   System.out.println("Error cambiando imagen de perfil -> "+ex);
+               }
+            }
+    }
+    //crea un grupo
+    public String crearGrupo(String nombre, String foto, String iduser, String users)
+    {
+        String idss= "00";
+        //creamos un archivo vef que contenga la varificacion del password
+        this.recuperarids();
+        this.contadorIDS++;
+        int ids = this.contadorIDS;
+        this.guardarids();
+        String ruta2 = nombre+"#hela@"+ids;//usuarios chat el primero sera la foto, el segundo el administrador luego los usuarios
+        File archivo2 = new File(ruta2);
+        BufferedWriter bw;
+        if(!archivo2.exists()) 
+        {
+            try
+            {
+                archivo2.createNewFile();
+                BufferedWriter bw2 = new BufferedWriter(new FileWriter(archivo2));
+                bw2.write(foto);
+                bw2.newLine();
+                bw2.write(iduser);
+                bw2.newLine();
+                if(users.split(",").length > 0)
+                {
+                    for(String u:users.split(","))
+                    {
+                        bw2.write(u);
+                        bw2.newLine();
+                    }
+                }
+                this.agregarUsuarioID(ids,nombre,"grupo#@#@grupo");//este es para identificar que es un grupo
+                //grupo creado
+                idss = Integer.toString(ids);
+            }catch(IOException ex)
+            {
+                System.out.println("fallo al crear los archivos "+ex.getLocalizedMessage());
+            }
+        }
+        return idss;
+    }
+    //nos sirve para meter un mensaje en el grupo que lo que haces es que se lo envia a todos los buzones de los usuarios que haya en el listado
+    public void enviarMensajeGrupo(String idOrigen, String idGrupo, String mensaje)
+    {
+        String ruta2 = this.buscarUsuarioID2(idGrupo)[1]+"#hela@"+idGrupo;
+        File archivo2 = new File(ruta2);
+        if(archivo2.exists())
+        {
+            String [] ser = this.leer(archivo2);
+            int contador=0;
+            for(String s:ser)
+            {
+                if(contador != 0)
+                {
+                    if(idOrigen.compareToIgnoreCase(s) != 0)
+                    {
+                        this.addmensaje(idGrupo, s, mensaje);
+                    }
+                    contador++;
+                }
+            }
+        }
+    }
+    //bo
 }
